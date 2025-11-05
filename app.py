@@ -387,11 +387,17 @@ def render_chat_mode():
 
     st.write("Have a conversation with AI agents to iteratively create and refine content.")
 
-    # Chat history display
+    # Initialize chat history
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Display chat messages
+    # Initialize orchestrator if needed
+    if not st.session_state.orchestrator:
+        if not initialize_orchestrator():
+            st.warning("Please configure ContentBlitz before using chat mode.")
+            return
+
+    # Display existing chat messages
     for message in st.session_state.chat_history:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -400,41 +406,56 @@ def render_chat_mode():
     user_input = st.chat_input("Type your message...")
 
     if user_input:
-        if not initialize_orchestrator():
-            return
-
-        # Add user message
+        # Add user message to history
         st.session_state.chat_history.append({
             "role": "user",
             "content": user_input
         })
 
+        # Display user message immediately
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Get AI response
+        # Generate AI response
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                try:
+            message_placeholder = st.empty()
+
+            try:
+                with st.spinner("Thinking..."):
                     result = st.session_state.orchestrator.process_request(user_input)
 
-                    response_parts = []
-                    for agent_type, agent_result in result["results"].items():
-                        if agent_result.success:
-                            response_parts.append(f"**{agent_type.replace('_', ' ').title()}:**\n\n{agent_result.content}\n\n")
+                    if not result.get("results"):
+                        response = "I couldn't generate a response. Please try rephrasing your request."
+                    else:
+                        response_parts = []
+                        for agent_type, agent_result in result["results"].items():
+                            if agent_result.success:
+                                response_parts.append(f"**{agent_type.replace('_', ' ').title()}:**\n\n{agent_result.content}\n\n")
+                            else:
+                                response_parts.append(f"**{agent_type.replace('_', ' ').title()}:** ❌ {agent_result.error}\n\n")
 
-                    response = "\n".join(response_parts)
+                        response = "\n".join(response_parts) if response_parts else "No response generated."
 
-                    st.markdown(response)
+                # Display response
+                message_placeholder.markdown(response)
 
-                    st.session_state.chat_history.append({
-                        "role": "assistant",
-                        "content": response
-                    })
+                # Add to history
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": response
+                })
 
-                except Exception as e:
-                    error_msg = f"Error: {str(e)}"
-                    st.error(error_msg)
+            except Exception as e:
+                error_msg = f"❌ Error: {str(e)}\n\nPlease check your configuration and try again."
+                message_placeholder.error(error_msg)
+
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": error_msg
+                })
+
+        # Force rerun to show the new messages properly
+        st.rerun()
 
 
 def render_analytics():
