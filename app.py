@@ -581,7 +581,7 @@ def render_analytics():
 
     with col3:
         total_content = sum(
-            len(result.content)
+            len(result.content) if result.content else 0
             for item in st.session_state.generation_history
             for result in item.get("results", {}).values()
             if result.success
@@ -594,9 +594,12 @@ def render_analytics():
     with col4:
         avg_seo_scores = []
         for item in st.session_state.generation_history:
-            for result in item.get("results", {}).values():
-                if "seo_score" in result.metadata:
-                    avg_seo_scores.append(result.metadata["seo_score"])
+            for agent_type, result in item.get("results", {}).items():
+                # Only check blog_writer results for SEO scores
+                if agent_type in ["blog_writer", "blog"] and result.success:
+                    # Handle None metadata
+                    if result.metadata and "seo_score" in result.metadata:
+                        avg_seo_scores.append(result.metadata["seo_score"])
 
         if avg_seo_scores:
             st.metric(
