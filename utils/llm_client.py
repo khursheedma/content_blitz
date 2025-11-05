@@ -48,7 +48,7 @@ class LLMClient:
         if model is None:
             model_defaults = {
                 LLMProvider.ANTHROPIC: "claude-3-5-sonnet-20241022",
-                LLMProvider.OPENAI: "gpt-4-turbo-preview",
+                LLMProvider.OPENAI: "gpt-4o",
                 LLMProvider.GOOGLE: "gemini-pro"
             }
             self.model = model_defaults[self.provider]
