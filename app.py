@@ -400,6 +400,31 @@ def render_content_package():
                 st.session_state.content_package = package
                 st.session_state.package_topic = topic
 
+                # Add to generation history for analytics
+                agents_used = []
+                if include_research:
+                    agents_used.append("research")
+                agents_used.extend([format_mapping[f] for f in formats])
+
+                # Convert package format to match generation_history structure
+                history_entry = {
+                    "request": f"Content Package: {topic}",
+                    "agents_used": agents_used,
+                    "results": {},
+                    "timestamp": package.get("timestamp", None)
+                }
+
+                # Add research result if present
+                if package.get("research"):
+                    history_entry["results"]["research"] = package["research"]
+
+                # Add content results
+                for format_type, result in package.get("content", {}).items():
+                    agent_type = format_mapping.get(format_type, format_type)
+                    history_entry["results"][agent_type] = result
+
+                st.session_state.generation_history.append(history_entry)
+
                 st.success("✓ Content package generated!")
 
             except Exception as e:
@@ -503,11 +528,15 @@ def render_chat_mode():
                 # Display response
                 message_placeholder.markdown(response)
 
-                # Add to history
+                # Add to chat history
                 st.session_state.chat_history.append({
                     "role": "assistant",
                     "content": response
                 })
+
+                # Add to generation history for analytics
+                if result.get("results"):
+                    st.session_state.generation_history.append(result)
 
             except Exception as e:
                 error_msg = f"❌ Error: {str(e)}\n\nPlease check your configuration and try again."
