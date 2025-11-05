@@ -20,13 +20,13 @@ class ContentOrchestrator:
 
     def __init__(
         self,
-        llm_provider: str = "anthropic",
+        llm_provider: str = "openai",
         model: Optional[str] = None
     ):
         """Initialize content orchestrator.
 
         Args:
-            llm_provider: LLM provider to use
+            llm_provider: LLM provider to use (default: openai)
             model: Specific model name
         """
         # Initialize core components
