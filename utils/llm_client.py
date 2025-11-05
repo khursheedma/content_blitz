@@ -1,9 +1,21 @@
 """Unified LLM client supporting multiple providers."""
 from typing import Optional, List, Dict, Any
 from enum import Enum
-import anthropic
 import openai
 from config import Config
+
+# Optional imports for other providers
+try:
+    import anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+
+try:
+    import google.generativeai as genai
+    GOOGLE_AVAILABLE = True
+except ImportError:
+    GOOGLE_AVAILABLE = False
 
 
 class LLMProvider(Enum):
@@ -49,6 +61,11 @@ class LLMClient:
     def _init_client(self):
         """Initialize the appropriate client based on provider."""
         if self.provider == LLMProvider.ANTHROPIC:
+            if not ANTHROPIC_AVAILABLE:
+                raise ValueError(
+                    "Anthropic package not installed. "
+                    "Install with: pip install anthropic"
+                )
             if not Config.ANTHROPIC_API_KEY:
                 raise ValueError("ANTHROPIC_API_KEY not configured")
             self.client = anthropic.Anthropic(api_key=Config.ANTHROPIC_API_KEY)
@@ -59,9 +76,13 @@ class LLMClient:
             self.client = openai.OpenAI(api_key=Config.OPENAI_API_KEY)
 
         elif self.provider == LLMProvider.GOOGLE:
+            if not GOOGLE_AVAILABLE:
+                raise ValueError(
+                    "Google Generative AI package not installed. "
+                    "Install with: pip install google-generativeai"
+                )
             if not Config.GOOGLE_API_KEY:
                 raise ValueError("GOOGLE_API_KEY not configured")
-            import google.generativeai as genai
             genai.configure(api_key=Config.GOOGLE_API_KEY)
             self.client = genai.GenerativeModel(self.model)
 
