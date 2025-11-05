@@ -71,8 +71,17 @@ if "session_id" not in st.session_state:
 if "generation_history" not in st.session_state:
     st.session_state.generation_history = []
 
+if "last_quick_result" not in st.session_state:
+    st.session_state.last_quick_result = None
+
 if "brand_configured" not in st.session_state:
     st.session_state.brand_configured = False
+
+if "content_package" not in st.session_state:
+    st.session_state.content_package = None
+
+if "package_topic" not in st.session_state:
+    st.session_state.package_topic = None
 
 
 def initialize_orchestrator():
@@ -253,43 +262,74 @@ def render_quick_generate():
                 )
 
                 st.session_state.generation_history.append(result)
+                # Store last result for persistence
+                st.session_state.last_quick_result = {
+                    "result": result,
+                    "request": request
+                }
 
-                # Display results
                 st.success("✓ Content generated successfully!")
-
-                for agent_type, agent_result in result["results"].items():
-                    if agent_result.success:
-                        with st.expander(f"📄 {agent_type.replace('_', ' ').title()}", expanded=True):
-                            st.markdown(agent_result.content)
-
-                            # Show metadata
-                            if agent_result.metadata:
-                                st.markdown("---")
-                                st.caption("Metadata:")
-
-                                if "seo_score" in agent_result.metadata and include_seo:
-                                    score = agent_result.metadata["seo_score"]
-                                    st.metric("SEO Score", f"{score}/100")
-
-                                    if "recommendations" in agent_result.metadata:
-                                        with st.expander("SEO Recommendations"):
-                                            for rec in agent_result.metadata["recommendations"]:
-                                                st.write(f"• {rec}")
-
-                                # Display other metadata
-                                metadata_cols = st.columns(3)
-                                meta_items = list(agent_result.metadata.items())[:6]
-
-                                for i, (key, value) in enumerate(meta_items):
-                                    if key not in ["seo_score", "recommendations", "sources"]:
-                                        with metadata_cols[i % 3]:
-                                            st.caption(f"**{key}**: {value}")
-
-                    else:
-                        st.error(f"❌ {agent_type} failed: {agent_result.error}")
 
             except Exception as e:
                 st.error(f"Generation failed: {str(e)}")
+                st.session_state.last_quick_result = None
+
+    # Display stored result (persists across reruns)
+    if st.session_state.last_quick_result:
+        result = st.session_state.last_quick_result["result"]
+        request_text = st.session_state.last_quick_result["request"]
+
+        st.markdown("---")
+
+        # Header with clear button
+        col_header, col_button = st.columns([4, 1])
+        with col_header:
+            st.markdown("### Generated Content")
+        with col_button:
+            if st.button("Clear Results", type="secondary", key="clear_quick"):
+                st.session_state.last_quick_result = None
+                st.rerun()
+
+        for agent_type, agent_result in result["results"].items():
+            if agent_result.success:
+                with st.expander(f"📄 {agent_type.replace('_', ' ').title()}", expanded=True):
+                    st.markdown(agent_result.content)
+
+                    # Download button
+                    filename = f"{request_text[:30].replace(' ', '_').lower()}_{agent_type}.md"
+                    st.download_button(
+                        label=f"Download {agent_type.replace('_', ' ').title()}",
+                        data=agent_result.content,
+                        file_name=filename,
+                        mime="text/markdown",
+                        key=f"download_quick_{agent_type}"
+                    )
+
+                    # Show metadata
+                    if agent_result.metadata:
+                        st.markdown("---")
+                        st.caption("Metadata:")
+
+                        if "seo_score" in agent_result.metadata:
+                            score = agent_result.metadata["seo_score"]
+                            st.metric("SEO Score", f"{score}/100")
+
+                            if "recommendations" in agent_result.metadata:
+                                with st.expander("SEO Recommendations"):
+                                    for rec in agent_result.metadata["recommendations"]:
+                                        st.write(f"• {rec}")
+
+                        # Display other metadata
+                        metadata_cols = st.columns(3)
+                        meta_items = list(agent_result.metadata.items())[:6]
+
+                        for i, (key, value) in enumerate(meta_items):
+                            if key not in ["seo_score", "recommendations", "sources"]:
+                                with metadata_cols[i % 3]:
+                                    st.caption(f"**{key}**: {value}")
+
+            else:
+                st.error(f"❌ {agent_type} failed: {agent_result.error}")
 
 
 def render_content_package():
@@ -356,29 +396,53 @@ def render_content_package():
                     **kwargs
                 )
 
+                # Store in session state to persist across reruns
+                st.session_state.content_package = package
+                st.session_state.package_topic = topic
+
                 st.success("✓ Content package generated!")
-
-                # Display research
-                if package.get("research") and package["research"].success:
-                    with st.expander("🔍 Research Findings", expanded=False):
-                        st.markdown(package["research"].content)
-
-                # Display content
-                for format_name, result in package["content"].items():
-                    if result.success:
-                        with st.expander(f"📄 {format_name.title()}", expanded=True):
-                            st.markdown(result.content)
-
-                            # Download button
-                            st.download_button(
-                                label=f"Download {format_name}",
-                                data=result.content,
-                                file_name=f"{topic.lower().replace(' ', '_')}_{format_name}.md",
-                                mime="text/markdown"
-                            )
 
             except Exception as e:
                 st.error(f"Package generation failed: {str(e)}")
+                st.session_state.content_package = None
+                st.session_state.package_topic = None
+
+    # Display stored package (persists across reruns)
+    if st.session_state.content_package:
+        package = st.session_state.content_package
+        topic = st.session_state.package_topic
+
+        st.markdown("---")
+
+        # Header with clear button
+        col_header, col_button = st.columns([4, 1])
+        with col_header:
+            st.markdown("### Generated Content Package")
+        with col_button:
+            if st.button("Clear Package", type="secondary"):
+                st.session_state.content_package = None
+                st.session_state.package_topic = None
+                st.rerun()
+
+        # Display research
+        if package.get("research") and package["research"].success:
+            with st.expander("🔍 Research Findings", expanded=False):
+                st.markdown(package["research"].content)
+
+        # Display content
+        for format_name, result in package["content"].items():
+            if result.success:
+                with st.expander(f"📄 {format_name.title()}", expanded=True):
+                    st.markdown(result.content)
+
+                    # Download button
+                    st.download_button(
+                        label=f"Download {format_name}",
+                        data=result.content,
+                        file_name=f"{topic.lower().replace(' ', '_')}_{format_name}.md",
+                        mime="text/markdown",
+                        key=f"download_{format_name}"  # Unique key for each button
+                    )
 
 
 def render_chat_mode():
