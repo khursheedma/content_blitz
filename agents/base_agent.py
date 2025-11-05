@@ -102,13 +102,23 @@ Generate high-quality, on-brand content that meets the user's requirements."""
         if "conversation_history" in context:
             context_parts.append("### Recent Conversation:")
             for msg in context["conversation_history"][-3:]:  # Last 3 messages
-                context_parts.append(msg)
+                # Handle both string messages and dict messages from memory
+                if isinstance(msg, dict):
+                    context_parts.append(msg.get("content", str(msg)))
+                else:
+                    context_parts.append(str(msg))
 
         if "target_audience" in context:
             context_parts.append(f"\n### Target Audience:\n{context['target_audience']}")
 
         if "keywords" in context:
-            context_parts.append(f"\n### Target Keywords:\n{', '.join(context['keywords'])}")
+            keywords = context['keywords']
+            # Handle both list and string keywords
+            if isinstance(keywords, list):
+                keywords_str = ', '.join(str(k) for k in keywords)
+            else:
+                keywords_str = str(keywords)
+            context_parts.append(f"\n### Target Keywords:\n{keywords_str}")
 
         if "tone" in context:
             context_parts.append(f"\n### Desired Tone:\n{context['tone']}")
