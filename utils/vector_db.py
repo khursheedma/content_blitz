@@ -26,6 +26,33 @@ class VectorMemory:
             metadata={"hnsw:space": "cosine"}
         )
 
+    def _sanitize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Sanitize metadata to only contain ChromaDB-compatible types.
+
+        ChromaDB only accepts: str, int, float, bool, None
+
+        Args:
+            metadata: Original metadata dictionary
+
+        Returns:
+            Sanitized metadata dictionary
+        """
+        sanitized = {}
+
+        for key, value in metadata.items():
+            if value is None:
+                sanitized[key] = None
+            elif isinstance(value, (str, int, float, bool)):
+                sanitized[key] = value
+            elif isinstance(value, (list, dict)):
+                # Convert lists and dicts to JSON strings
+                sanitized[key] = json.dumps(value)
+            else:
+                # Convert other types to string
+                sanitized[key] = str(value)
+
+        return sanitized
+
     def add_conversation(
         self,
         conversation_id: str,
@@ -57,10 +84,13 @@ class VectorMemory:
         if metadata:
             meta.update(metadata)
 
+        # Sanitize metadata for ChromaDB
+        sanitized_meta = self._sanitize_metadata(meta)
+
         self.collection.add(
             documents=[combined_text],
             ids=[doc_id],
-            metadatas=[meta]
+            metadatas=[sanitized_meta]
         )
 
     def add_content(
@@ -86,10 +116,13 @@ class VectorMemory:
         if metadata:
             meta.update(metadata)
 
+        # Sanitize metadata for ChromaDB
+        sanitized_meta = self._sanitize_metadata(meta)
+
         self.collection.add(
             documents=[content],
             ids=[content_id],
-            metadatas=[meta]
+            metadatas=[sanitized_meta]
         )
 
     def search_similar(
