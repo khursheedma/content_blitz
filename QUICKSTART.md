@@ -22,6 +22,11 @@ This will install all required packages including:
 - Web framework (Streamlit)
 - Content analysis tools
 
+```bash
+# Download NLTK data for SEO analysis
+python setup_nltk.py
+```
+
 ### 2. Configure API Keys
 
 Copy the example environment file:

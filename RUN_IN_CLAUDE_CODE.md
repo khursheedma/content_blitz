@@ -30,6 +30,11 @@ pip install -r requirements.txt
 
 This installs all required packages (~2-3 minutes).
 
+```bash
+# Download NLTK data for SEO analysis
+python setup_nltk.py
+```
+
 ### Step 3: Run the Application
 
 **Option A: Web UI**

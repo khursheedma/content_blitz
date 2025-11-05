@@ -14,7 +14,27 @@ class SEOAnalyzer:
 
     def __init__(self):
         """Initialize SEO analyzer."""
-        self.rake = Rake() if Rake else None
+        if Rake:
+            try:
+                self.rake = Rake()
+            except LookupError:
+                # NLTK data not downloaded
+                print("⚠️  NLTK data not found. Running setup...")
+                try:
+                    import nltk
+                    nltk.download('stopwords', quiet=True)
+                    nltk.download('punkt', quiet=True)
+                    self.rake = Rake()
+                    print("✓ NLTK data downloaded successfully")
+                except Exception as e:
+                    print(f"⚠️  Could not download NLTK data: {e}")
+                    print("   SEO keyword extraction will use fallback method")
+                    self.rake = None
+            except Exception as e:
+                print(f"⚠️  RAKE initialization failed: {e}")
+                self.rake = None
+        else:
+            self.rake = None
 
     def analyze_content(
         self,

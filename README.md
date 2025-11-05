@@ -77,6 +77,11 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+```bash
+# Download NLTK data for SEO keyword analysis
+python setup_nltk.py
+```
+
 4. **Configure environment variables**
 
 ```bash
