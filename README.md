@@ -53,7 +53,7 @@ content_blitz/
 ### Prerequisites
 
 - Python 3.8+
-- At least one LLM API key (Anthropic, OpenAI, or Google)
+- OpenAI API key (Get one at: https://platform.openai.com/api-keys)
 
 ### Installation
 
@@ -83,13 +83,12 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `.env` and add your API keys:
+Edit `.env` and add your OpenAI API key:
 
 ```env
-# Required: At least one LLM provider
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# Required: OpenAI API Key
+# Get your API key from: https://platform.openai.com/api-keys
 OPENAI_API_KEY=your_openai_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here
 
 # Optional: For enhanced research
 SERPAPI_API_KEY=your_serpapi_key_here
@@ -97,9 +96,9 @@ SERPAPI_API_KEY=your_serpapi_key_here
 # Optional: For AI image generation
 STABILITY_API_KEY=your_stability_ai_key_here
 
-# Configuration
-DEFAULT_LLM_PROVIDER=anthropic
-DEFAULT_MODEL=claude-3-5-sonnet-20241022
+# OpenAI Configuration
+DEFAULT_LLM_PROVIDER=openai
+DEFAULT_MODEL=gpt-4o
 ```
 
 5. **Run the application**
@@ -164,19 +163,14 @@ All generated content will follow your brand voice guidelines.
 
 ### LLM Providers
 
-ContentBlitz supports multiple LLM providers:
+ContentBlitz is configured to use OpenAI GPT models:
 
-- **Anthropic Claude** (Recommended)
-  - Models: claude-3-5-sonnet-20241022, claude-3-opus-20240229
-  - Best for: High-quality, nuanced content
+- **OpenAI GPT** (Default)
+  - Models: gpt-4o (default), gpt-4-turbo, gpt-4, gpt-3.5-turbo
+  - Best for: High-quality content generation, fast response times, versatile tasks
+  - Get API key: https://platform.openai.com/api-keys
 
-- **OpenAI GPT**
-  - Models: gpt-4-turbo-preview, gpt-4, gpt-3.5-turbo
-  - Best for: Fast generation, versatile tasks
-
-- **Google Gemini**
-  - Models: gemini-pro
-  - Best for: Multimodal tasks
+**Note:** The codebase also supports Anthropic Claude and Google Gemini, but requires OpenAI by default.
 
 ### Search APIs
 

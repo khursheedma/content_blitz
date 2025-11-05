@@ -6,7 +6,7 @@ Get ContentBlitz up and running in 5 minutes!
 
 - Python 3.8 or higher
 - pip (Python package manager)
-- At least one API key from: Anthropic, OpenAI, or Google
+- OpenAI API key (Get one at: https://platform.openai.com/api-keys)
 
 ## Step-by-Step Setup
 
@@ -17,9 +17,9 @@ pip install -r requirements.txt
 ```
 
 This will install all required packages including:
-- LLM clients (anthropic, openai, google-generativeai)
-- Vector database (chromadb)
-- Web framework (streamlit)
+- OpenAI client for GPT models
+- Vector database (ChromaDB)
+- Web framework (Streamlit)
 - Content analysis tools
 
 ### 2. Configure API Keys
@@ -30,23 +30,18 @@ Copy the example environment file:
 cp .env.example .env
 ```
 
-Edit `.env` and add at least ONE of these API keys:
+Edit `.env` and add your OpenAI API key:
 
 ```bash
-# For Anthropic Claude (Recommended)
-ANTHROPIC_API_KEY=sk-ant-api03-...
-
-# OR for OpenAI GPT
+# Required: OpenAI API Key
 OPENAI_API_KEY=sk-...
-
-# OR for Google Gemini
-GOOGLE_API_KEY=AI...
 ```
 
-**Getting API Keys:**
-- **Anthropic**: https://console.anthropic.com/ (Sign up → Get API Key)
-- **OpenAI**: https://platform.openai.com/ (Sign up → API Keys)
-- **Google**: https://makersuite.google.com/app/apikey (Sign up → Create API Key)
+**Getting Your OpenAI API Key:**
+1. Go to https://platform.openai.com/api-keys
+2. Sign up or log in to your OpenAI account
+3. Click "Create new secret key"
+4. Copy the key and paste it into your `.env` file
 
 ### 3. Run ContentBlitz
 

@@ -81,13 +81,13 @@ def initialize_orchestrator():
         with st.spinner("Initializing ContentBlitz..."):
             try:
                 orchestrator = ContentOrchestrator(
-                    llm_provider=st.session_state.get("llm_provider", "anthropic")
+                    llm_provider=st.session_state.get("llm_provider", "openai")
                 )
                 st.session_state.orchestrator = orchestrator
                 st.success("✓ ContentBlitz initialized successfully!")
             except Exception as e:
                 st.error(f"Failed to initialize: {str(e)}")
-                st.info("Please ensure you have configured at least one LLM API key in your .env file")
+                st.info("Please ensure you have configured your OPENAI_API_KEY in your .env file")
                 return False
     return True
 
@@ -115,7 +115,7 @@ def render_sidebar():
     st.sidebar.subheader("LLM Settings")
     llm_provider = st.sidebar.selectbox(
         "Provider",
-        ["anthropic", "openai", "google"],
+        ["openai", "anthropic", "google"],
         index=0
     )
     st.session_state.llm_provider = llm_provider

@@ -15,8 +15,8 @@ class Config:
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
     GOOGLE_API_KEY: Optional[str] = os.getenv("GOOGLE_API_KEY")
 
-    DEFAULT_LLM_PROVIDER: str = os.getenv("DEFAULT_LLM_PROVIDER", "anthropic")
-    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "claude-3-5-sonnet-20241022")
+    DEFAULT_LLM_PROVIDER: str = os.getenv("DEFAULT_LLM_PROVIDER", "openai")
+    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "gpt-4o")
     TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.7"))
 
     # Search Configuration
@@ -36,16 +36,11 @@ class Config:
     @classmethod
     def validate(cls) -> bool:
         """Validate that required configuration is present."""
-        has_llm = any([
-            cls.ANTHROPIC_API_KEY,
-            cls.OPENAI_API_KEY,
-            cls.GOOGLE_API_KEY
-        ])
-
-        if not has_llm:
+        if not cls.OPENAI_API_KEY:
             raise ValueError(
-                "At least one LLM API key must be configured. "
-                "Please set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GOOGLE_API_KEY."
+                "OPENAI_API_KEY must be configured. "
+                "Please set OPENAI_API_KEY in your .env file. "
+                "Get your API key from: https://platform.openai.com/api-keys"
             )
 
         return True
